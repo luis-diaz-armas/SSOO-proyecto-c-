@@ -8,19 +8,26 @@
 #define EXIT_FALLO 1
 
 int main_protegido(int argc, char* argv[]) {
-    if (!comprobar_args(argc, argv)) {
-        std::cerr << "\tcopy: argumentos invalidados\n";
+    Options opts;
+    auto parse = parse_args(argc, argv, opts);
+    if (opts.imprimir_ayuda) {
+        imprimir_ayuda();
+        return EXIT_EXITO;
+    }
+    if (!parse) {
+        imprimir_errores(parse.error());
         return EXIT_FALLO;
     }
-    if (!es_directorio(std::string(argv[2]))) {
-        if (es_mismo_fichero(std::string(argv[1]), std::string(argv[2]))) {
-            std::cout << "\tcopy: son el mismo fichero\n";
-            return EXIT_EXITO;
-        }
-        copiar_fichero(std::string(argv[1]), std::string(argv[2]));
-    } else {
-        copiar_fichero_fuera(std::string(argv[1]), std::string(argv[2]));
+    if (es_mismo_fichero(opts.origen, opts.destino)) {
+        std::cout << "\tcopy: son el mismo fichero\n";
+        return EXIT_EXITO;
     }
+    if (opts.modo_compresion == TipoCompresion::NADA) {
+        copiar_fichero(opts.origen, opts.destino);
+    } else {
+        copiar_fichero_comprimido(opts.origen, opts.destino, opts.modo_compresion);
+    }
+    
     return EXIT_EXITO;
 }
 
